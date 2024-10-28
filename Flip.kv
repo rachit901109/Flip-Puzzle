@@ -1,0 +1,77 @@
+#:kivy 2.3.0
+
+WindowManager:
+
+<WindowManager>:
+    HomeScreen:
+    GameScreen:
+    InfoScreen:
+    AboutScreen:
+
+<HomeScreen>:
+    name: "home_screen"
+    id: home_screen
+    HomeWidget:
+
+<GameScreen>:
+    name: "game_screen"
+    BoxLayout:
+        Label:
+            text: "This is the Game screen"
+            font_size: 24
+        Button:
+            text: "Go Back"
+            on_press:
+                app.root.current = "home_screen"
+                root.manager.transition.direction = "right"
+
+<InfoScreen>:
+    name: "info_screen"
+    BoxLayout:
+        Label:
+            text: "This is the Info screen"
+            font_size: 24
+        Button:
+            text: "Go Back"
+            on_press:
+                app.root.current = "home_screen"
+                root.manager.transition.direction = "right"
+
+<AboutScreen>:
+    name: "about_screen"
+    BoxLayout:
+        Label:
+            text: "This is the About screen"
+            font_size: 24
+        Button:
+            text: "Go Back"
+            on_press:
+                app.root.current = "home_screen"
+                root.manager.transition.direction = "right"
+
+<HomeWidget>:
+    anchor_x: "center"
+    anchor_y: "center"
+    GridLayout:
+        rows: 3
+        size_hint: 0.3, 0.5
+        spacing: "50dp"
+
+        Button:
+            text: "Flippin Start"
+            font_size: 24
+            on_press:
+                app.root.current = "game_screen"
+                root.parent.manager.transition.direction = "left"
+        Button:
+            text: "How to Play?"
+            font_size: 24
+            on_press:
+                app.root.current = "info_screen"
+                root.parent.manager.transition.direction = "left"
+        Button:
+            text: "About Flip"
+            font_size: 24
+            on_press:
+                app.root.current = "about_screen"
+                root.parent.manager.transition.direction = "left"
