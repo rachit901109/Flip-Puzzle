@@ -1,4 +1,5 @@
 #:kivy 2.3.0
+#: import NoTransition kivy.uix.screenmanager.NoTransition
 
 WindowManager:
 
@@ -16,38 +17,52 @@ WindowManager:
 <GameScreen>:
     name: "game_screen"
     BoxLayout:
-        Label:
-            text: "This is the Game screen"
-            font_size: 24
-        Button:
-            text: "Go Back"
-            on_press:
-                app.root.current = "home_screen"
-                root.manager.transition.direction = "right"
+        orientation: "vertical"
+        spacing: "10dp"
+        NavWidget:
+        BoxLayout:
+            Label:
+                text: "This is the Game screen"
+                font_size: 24
+            Button:
+                text: "Go Back"
+                on_release:
+                    app.root.current = "home_screen"
+                    root.manager.transition.direction = "right"
 
 <InfoScreen>:
     name: "info_screen"
     BoxLayout:
-        Label:
-            text: "This is the Info screen"
-            font_size: 24
-        Button:
-            text: "Go Back"
-            on_press:
-                app.root.current = "home_screen"
-                root.manager.transition.direction = "right"
+        orientation: "vertical"
+        spacing: "10dp"
+        NavWidget:
+        BoxLayout:
+            Label:
+                text: "This is the Info screen"
+                font_size: 24
+            Button:
+                text: "Go Back"
+                on_release:
+                    app.root.current = "home_screen"
+                    root.manager.transition.direction = "right"
+
 
 <AboutScreen>:
     name: "about_screen"
     BoxLayout:
-        Label:
-            text: "This is the About screen"
-            font_size: 24
-        Button:
-            text: "Go Back"
-            on_press:
-                app.root.current = "home_screen"
-                root.manager.transition.direction = "right"
+        orientation: "vertical"
+        spacing: "10dp"
+        NavWidget:
+        BoxLayout:
+            Label:
+                text: "This is the About screen"
+                font_size: 24
+            Button:
+                text: "Go Back"
+                on_release:
+                    app.root.current = "home_screen"
+                    root.manager.transition.direction = "right"
+
 
 <HomeWidget>:
     anchor_x: "center"
@@ -60,18 +75,36 @@ WindowManager:
         Button:
             text: "Flippin Start"
             font_size: 24
-            on_press:
+            on_release:
                 app.root.current = "game_screen"
                 root.parent.manager.transition.direction = "left"
         Button:
             text: "How to Play?"
             font_size: 24
-            on_press:
+            on_release:
                 app.root.current = "info_screen"
                 root.parent.manager.transition.direction = "left"
         Button:
             text: "About Flip"
             font_size: 24
-            on_press:
+            on_release:
                 app.root.current = "about_screen"
                 root.parent.manager.transition.direction = "left"
+
+<NavWidget>:
+    orientation: "horizontal"
+    spacing: "10dp"
+    size_hint: 1, 0.1
+    pos_hint: {"top": 1}
+    Button:
+        text: "Game"
+        on_release: app.navigate_to("game_screen", NoTransition())
+    Button:
+        text: "Tutorial"
+        on_release: app.navigate_to("info_screen", NoTransition())
+    Button:
+        text: "About"
+        on_release: app.navigate_to("about_screen", NoTransition())
+    Button:
+        text: "Back"
+        on_release: app.navigate_to("home_screen", NoTransition())
