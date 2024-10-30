@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty, DictProperty
 from kivy.uix.button import Button
+from kivy.core.window import Window
 import numpy as np
 class NavWidget(BoxLayout):
     pass
@@ -67,8 +68,6 @@ class GameScreen(Screen):
     def update_win_condition_values(self, N):
         values = [str(i) for i in range(N)]
         self.ids.win_condition.values = values
-        if int(self.ids.win_condition.text) >= N:
-            self.ids.win_condition.text = "0"
 class InfoScreen(Screen):
     pass
 
@@ -86,6 +85,11 @@ class HomeWidget(AnchorLayout):
         n = int(game_screen.ids.cols_input.text)
 
         game_screen.generate_board(N, m, n)
+
+    def close_app(self):
+        app = App.get_running_app()
+        app.stop()
+        Window.close()
 
 class FlipApp(App):
     def build(self):

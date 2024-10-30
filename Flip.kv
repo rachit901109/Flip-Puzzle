@@ -1,5 +1,6 @@
 #:kivy 2.3.0
 #: import NoTransition kivy.uix.screenmanager.NoTransition
+#: import SlideTransition kivy.uix.screenmanager.SlideTransition
 
 WindowManager:
 
@@ -142,9 +143,7 @@ WindowManager:
                 font_size: 24
             Button:
                 text: "Go Back"
-                on_release:
-                    app.root.current = "home_screen"
-                    root.manager.transition.direction = "right"
+                on_release: app.navigate_to("home_screen", SlideTransition(direction="right"))
 
 
 <AboutScreen>:
@@ -159,38 +158,35 @@ WindowManager:
                 font_size: 24
             Button:
                 text: "Go Back"
-                on_release:
-                    app.root.current = "home_screen"
-                    root.manager.transition.direction = "right"
+                on_release: app.navigate_to("home_screen", SlideTransition(direction="right"))
 
 
 <HomeWidget>:
     anchor_x: "center"
     anchor_y: "center"
-    GridLayout:
-        rows: 3
-        size_hint: 0.3, 0.5
-        spacing: "50dp"
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: 0.35, 0.5
+        spacing: "20dp"
 
         Button:
             text: "Flippin Start"
             font_size: 24
             on_release:
                 root.default_game()
-                app.root.current = "game_screen"
-                root.parent.manager.transition.direction = "left"
+                app.navigate_to("game_screen", SlideTransition(direction="left"))
         Button:
             text: "How to Play?"
             font_size: 24
-            on_release:
-                app.root.current = "info_screen"
-                root.parent.manager.transition.direction = "left"
+            on_release: app.navigate_to("info_screen", SlideTransition(direction="left"))
         Button:
             text: "About Flip"
             font_size: 24
-            on_release:
-                app.root.current = "about_screen"
-                root.parent.manager.transition.direction = "left"
+            on_release: app.navigate_to("about_screen", SlideTransition(direction="left"))
+        Button:
+            text: "Close"
+            font_size: 24
+            on_release: root.close_app()
 
 <NavWidget>:
     orientation: "horizontal"
@@ -207,5 +203,5 @@ WindowManager:
         text: "About"
         on_release: app.navigate_to("about_screen", NoTransition())
     Button:
-        text: "Back"
-        on_release: app.navigate_to("home_screen", NoTransition())
+        text: "Quit"
+        on_release: app.navigate_to("home_screen", SlideTransition(direction="right"))
