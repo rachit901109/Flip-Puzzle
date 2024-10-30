@@ -16,19 +16,119 @@ WindowManager:
 
 <GameScreen>:
     name: "game_screen"
+    id: game_screen
     BoxLayout:
         orientation: "vertical"
         spacing: "10dp"
         NavWidget:
         BoxLayout:
-            Label:
-                text: "This is the Game screen"
-                font_size: 24
-            Button:
-                text: "Go Back"
-                on_release:
-                    app.root.current = "home_screen"
-                    root.manager.transition.direction = "right"
+            spacing: "10dp"
+            padding: "10dp"
+            
+            # Left sidebar for game settings
+            ScrollView:
+                size_hint_x: 0.3
+                do_scroll_x: False
+                do_scroll_y: True
+                
+                BoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: "10dp"
+                    padding: "10dp"
+                    canvas.before:
+                        Color:
+                            rgba: 0.2, 0.2, 0.2, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    
+                    Label:
+                        text: "Game Settings"
+                        size_hint_y: None
+                        height: "40dp"
+                        bold: True
+                    
+                    Label:
+                        text: "Modular System (N):"
+                        size_hint_y: None
+                        height: "30dp"
+                    Spinner:
+                        id: mod_system
+                        text: "2"
+                        values: ["2", "3", "5", "7"]
+                        size_hint_y: None
+                        height: "40dp"
+                        on_text: root.update_win_condition_values(int(self.text))
+                    
+                    Label:
+                        text: "Rows (m):"
+                        size_hint_y: None
+                        height: "30dp"
+                    TextInput:
+                        id: rows_input
+                        multiline: False
+                        text: "3"
+                        input_filter: "int"
+                        size_hint_y: None
+                        height: "40dp"
+                    
+                    Label:
+                        text: "Columns (n):"
+                        size_hint_y: None
+                        height: "30dp"
+                    TextInput:
+                        id: cols_input
+                        multiline: False
+                        text: "3"
+                        input_filter: "int"
+                        size_hint_y: None
+                        height: "40dp"
+                    
+                    Label:
+                        text: "Connectivity:"
+                        size_hint_y: None
+                        height: "30dp"
+                    Spinner:
+                        id: connectivity
+                        text: "4"
+                        values: ["4", "8"]
+                        size_hint_y: None
+                        height: "40dp"
+                    
+                    Label:
+                        text: "Winning Condition:"
+                        size_hint_y: None
+                        height: "30dp"
+                    Spinner:
+                        id: win_condition
+                        text: "0"
+                        values: ["0", "1"]
+                        size_hint_y: None
+                        height: "40dp"
+                    
+                    Button:
+                        text: "Generate Board"
+                        size_hint_y: None
+                        height: "50dp"
+                        on_release: 
+                            root.generate_board(mod_system.text, rows_input.text, cols_input.text)
+            
+            # Right side for game board
+            BoxLayout:
+                orientation: "vertical"
+                canvas.before:
+                    Color:
+                        rgba: 0.95, 0.95, 0.95, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                
+                GridLayout:
+                    id: board_grid
+                    padding: "10dp"
+                    spacing: "2dp"
 
 <InfoScreen>:
     name: "info_screen"
@@ -76,6 +176,7 @@ WindowManager:
             text: "Flippin Start"
             font_size: 24
             on_release:
+                root.default_game()
                 app.root.current = "game_screen"
                 root.parent.manager.transition.direction = "left"
         Button:
