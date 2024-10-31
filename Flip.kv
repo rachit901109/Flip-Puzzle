@@ -114,7 +114,7 @@ WindowManager:
                         size_hint_y: None
                         height: "50dp"
                         on_release: 
-                            root.generate_board(mod_system.text, rows_input.text, cols_input.text)
+                            root.generate_board(mod_system.text, rows_input.text, cols_input.text, connectivity.text)
             
             # Right side for game board
             BoxLayout:
@@ -205,3 +205,11 @@ WindowManager:
     Button:
         text: "Quit"
         on_release: app.navigate_to("home_screen", SlideTransition(direction="right"))
+
+<ColoredButton>:
+    canvas.before:
+        Color:
+            rgba: self.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
