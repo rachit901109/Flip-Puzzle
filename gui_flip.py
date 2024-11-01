@@ -6,10 +6,10 @@ from kivy.properties import ObjectProperty, DictProperty
 from kivy.uix.button import Button
 from kivy.core.window import Window
 from kivy.uix.image import Image
-from kivy.core.image import Image as CoreImage
+from kivy.clock import Clock
+from functools import partial
 import numpy as np
 import os
-from kivy.clock import Clock
 class NavWidget(BoxLayout):
     pass
 
@@ -17,16 +17,35 @@ class HomeScreen(Screen):
     pass
 
 class ColoredButton(Button):
-    def __init__(self, value, color_map, position, connect, **kwargs):
+    def __init__(self, value, pos_x, pos_y, m, n, N, color_map, position, connect, **kwargs):
         super().__init__(**kwargs)
         
+        # Store initial values
+        self.value = value
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.neighbours = []
+
+        if connect == "4":
+            dirx = [0, 1, 0, -1, 0]
+            diry = [0, 0, 1, 0, -1]
+        elif connect == "8":
+            dirx = [0, 1, 0, -1, 0, -1, -1, 1, 1]
+            diry = [0, 0, 1, 0, -1, -1, 1, -1, 1]
+            
+        for i in range(len(dirx)):
+            nx = self.pos_x + dirx[i]
+            ny = self.pos_y + diry[i]
+            if nx >= 0 and nx < m and ny >= 0 and ny < n:
+                self.neighbours.append((nx*n)+ny)
+
         # Set button properties
         self.background_color = color_map[value]
         self.background_normal = ""
         
         # Adjust text color based on background brightness
-        brightness = sum(color_map[value][:3]) / 3
-        self.color = (0, 0, 0, 1) if brightness > 0.5 else (1, 1, 1, 1)
+        # brightness = sum(color_map[value][:3]) / 3
+        # self.color = (0, 0, 0, 1) if brightness > 0.5 else (1, 1, 1, 1)
         
         # Based on connectivity of board pixel neighbouring button for intuition
         base_path = os.path.abspath("media")
@@ -50,6 +69,8 @@ class ColoredButton(Button):
             # We schedule the update function to run on the next frame so that we get the accurate positions of the pixels
             # after the widgets are fully rendered, not doing this will cause image centering issues. 
             Clock.schedule_once(lambda dt: self._update_image(), 0)
+        
+        self.bind(on_release=partial(self._toggle, m,n,N,color_map))
 
     def _update_image(self, *args):
         """Update both image size and position"""
@@ -64,6 +85,29 @@ class ColoredButton(Button):
                 self.x + (self.width - self.image.width) / 2,  # Center horizontally
                 self.y + (self.height - self.image.height) / 2  # Center vertically
             )
+    
+    def update_value(self, N, color_map):
+        """Update the button's value and color"""
+        self.value = (self.value+1) % N
+        self.background_color = color_map[self.value]
+
+    def _toggle(self, m,n,N,color_map, instance):
+        """Handle the button press"""
+        # Get reference to the game board grid
+        board_grid = self.parent
+        
+        # Update neighbors
+        for cell in self.neighbours:
+            # Calculate the index in the grid's children
+            # Note: Kivy's GridLayout stores children in reverse order
+            index = ((m*n)-1)-cell
+            print(f"index: {index}")
+            if 0 <= index < len(board_grid.children):
+                neighbor_button = board_grid.children[index]
+                if isinstance(neighbor_button, ColoredButton):
+                    neighbor_button.update_value(N, color_map)
+
+
     
     #no need for specific event handler update image will do both
     # def on_size(self, *args):
@@ -94,7 +138,7 @@ class GameScreen(Screen):
             m, n = int(m), int(n)
             board = np.random.randint(N, size=(m*n, 1), dtype=np.int8)
             # Convert board to displayable format
-            self.display_board(board.reshape(m, n), m, n, connect)
+            self.display_board(board.reshape(m, n), m, n, N, connect)
         except ValueError:
             print("Please enter valid numbers for N and dimensions of the board.")
     
@@ -122,17 +166,13 @@ class GameScreen(Screen):
         else:
             return "center"
 
-    def display_board(self, board, m, n, connect):
+    def display_board(self, board, m, n, N, connect):
         # Clear previous board
         board_grid = self.ids.board_grid
         board_grid.clear_widgets()
         board_grid.rows = m
         board_grid.cols = n
 
-        # Calculate button size based on available space
-        # We'll set a minimum size to ensure the pixel art is visible
-        # min_size = 40  # minimum size in pixels
-        # button_size = max(min_size, min(board_grid.width/n, board_grid.height/m))
         def update_buttons(*args):
             """Update all buttons after grid is laid out"""
             for child in board_grid.children:
@@ -146,6 +186,11 @@ class GameScreen(Screen):
                 position = self.get_position_type(i,j,m,n)
                 btn = ColoredButton(
                     value=value,
+                    pos_x=i,
+                    pos_y=j,
+                    m=m,
+                    n=n,
+                    N=N,
                     color_map=self.color_map,
                     position=position,
                     connect=connect,
