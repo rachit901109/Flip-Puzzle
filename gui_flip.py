@@ -30,13 +30,15 @@ class ColoredButton(Button):
         
         # Based on connectivity of board pixel neighbouring button for intuition
         base_path = os.path.abspath("media")
-        image_file = "bottom_right_corner_4.png" 
+        image_file = f"{position}_{connect}.png"
         image_path = os.path.join(base_path, image_file)
         
         if os.path.exists(image_path):
             self.image = Image(
                 source=image_path,
                 size_hint=(None, None),
+                allow_stretch=True,
+                keep_ratio=True,
                 size=(16, 16),
                 pos_hint={'center_x': 0.5, 'center_y': 0.5}
             )
@@ -53,8 +55,8 @@ class ColoredButton(Button):
         """Update both image size and position"""
         if hasattr(self, 'image'):
             # Set image size to 40% of the button's smallest dimension
-            # only usefull if i switch to different pixel, currently only using 16x16 size as default.
-            size = min(self.width, self.height)
+            # only usefull if i switch to different pixel art, currently only using 16x16 size as default.
+            size = min(self.width, self.height)*0.4
             self.image.size = (size, size)
             
             # Calculate center position
