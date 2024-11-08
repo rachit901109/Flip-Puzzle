@@ -56,8 +56,8 @@ class ColoredButton(Button):
             self.image = Image(
                 source=image_path,
                 size_hint=(None, None),
-                allow_stretch=True,
-                keep_ratio=True,
+                # allow_stretch=True,
+                # keep_ratio=True,
                 size=(16, 16),
                 pos_hint={'center_x': 0.5, 'center_y': 0.5}
             )
@@ -101,7 +101,7 @@ class ColoredButton(Button):
             # Calculate the index in the grid's children
             # Note: Kivy's GridLayout stores children in reverse order
             index = ((m*n)-1)-cell
-            print(f"index: {index}")
+            # print(f"index: {index}")
             if 0 <= index < len(board_grid.children):
                 neighbor_button = board_grid.children[index]
                 if isinstance(neighbor_button, ColoredButton):
@@ -130,15 +130,16 @@ class GameScreen(Screen):
         6: (0.9569, 0.2627, 0.2118, 1)   # Bright red
     })
     
-    def generate_board(self, N, m, n, connect):
+    def generate_board(self, N, m, n, connect, win_condition):
         if not m or not n:  # Check if dimensions are provided
             return
         try:
             N = int(N)
             m, n = int(m), int(n)
+            win_condition = int(win_condition)
             board = np.random.randint(N, size=(m*n, 1), dtype=np.int8)
             # Convert board to displayable format
-            self.display_board(board.reshape(m, n), m, n, N, connect)
+            self.display_board(board.reshape(m, n), m, n, N, connect, win_condition)
         except ValueError:
             print("Please enter valid numbers for N and dimensions of the board.")
     
@@ -166,7 +167,7 @@ class GameScreen(Screen):
         else:
             return "center"
 
-    def display_board(self, board, m, n, N, connect):
+    def display_board(self, board, m, n, N, connect, win_condition):
         # Clear previous board
         board_grid = self.ids.board_grid
         board_grid.clear_widgets()
@@ -198,6 +199,10 @@ class GameScreen(Screen):
                     size_hint=(1, 1)
                 )
                 board_grid.add_widget(btn)
+
+        current_game_label = self.ids.current_game_settings
+        current_game_label.text = f"{N} Colors\n{m} x {n} Board\n{connect} Connectivity\n{win_condition} Winning Color"
+        
         Clock.schedule_once(update_buttons, 0)
 
     def update_win_condition_values(self, N):
@@ -219,13 +224,14 @@ class HomeWidget(AnchorLayout):
         m = int(game_screen.ids.rows_input.text)
         n = int(game_screen.ids.cols_input.text)
         connect = game_screen.ids.connectivity.text
+        win_condition = game_screen.ids.win_condition.text
 
-        game_screen.generate_board(N, m, n, connect)
+        game_screen.generate_board(N, m, n, connect, win_condition)
 
     def close_app(self):
         app = App.get_running_app()
         app.stop()
-        Window.close()
+        # Window.close()
 
 class FlipApp(App):
     def build(self):
