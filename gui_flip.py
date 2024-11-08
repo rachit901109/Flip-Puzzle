@@ -199,9 +199,21 @@ class GameScreen(Screen):
                     size_hint=(1, 1)
                 )
                 board_grid.add_widget(btn)
-
+        
+        # fill current game settings and color map
         current_game_label = self.ids.current_game_settings
         current_game_label.text = f"{N} Colors\n{m} x {n} Board\n{connect} Connectivity\n{win_condition} Winning Color"
+
+        color_map_box = self.ids.show_color_map
+        color_map_box.clear_widgets()
+        for i in range(N):
+            btn = Button(
+                text=str(i),
+                size_hint=(1,1),
+                background_normal="",
+                background_color=self.color_map[i]
+            )
+            color_map_box.add_widget(btn)
         
         Clock.schedule_once(update_buttons, 0)
 

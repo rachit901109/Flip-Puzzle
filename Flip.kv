@@ -21,10 +21,14 @@ WindowManager:
     BoxLayout:
         orientation: "vertical"
         spacing: "10dp"
+
         NavWidget:
+        
         BoxLayout:
+            orientation: "horizontal"
             spacing: "10dp"
             padding: "10dp"
+            pos_hint: {"top": 1}
             
             # Left sidebar for game settings
             ScrollView:
@@ -115,7 +119,7 @@ WindowManager:
                         height: "50dp"
                         on_release: 
                             root.generate_board(mod_system.text, rows_input.text, cols_input.text, connectivity.text, win_condition.text)
-            
+                        
             # Right side for game board
             BoxLayout:
                 orientation: "vertical"
@@ -129,40 +133,39 @@ WindowManager:
                 BoxLayout:
                     orientation: "horizontal"
                     size_hint: 1, 0.2
+                    padding: "10dp"
 
                     BoxLayout:
                         orientation: "vertical"
-                        size_hint: 0.75, 1
-                        pos_hint: {"x": 0}
+                        size_hint: 0.5, 1
+                        Label: 
+                            text: "Current Game Settings\n"
+                            color: 0,0,0,1
+                            font_size: 20
+                            bold: True
                         Label:
                             id: current_game_settings
                             text: ""
                             color: 0,0,0,1
-                            font_size: 20
-                            bold: True
+                            font_size: 18
                     
                     BoxLayout:
-                        id: map_win_condition
-                        orientation: "horizontal"
-                        padding_x: "10dp"
-
-                        Button:
-                            text: "0"
-                            size_hint: 1,1
-
-                        Button:
-                            text: "1"
-                            size_hint: 1,1
-
-                        Button:
-                            text: "2"
-                            size_hint: 1,1
-
-                        Button:
-                            text: "3"
-                            size_hint: 1,1
-
-
+                        orientation: "vertical"
+                        spacing: "5dp"
+                        
+                        BoxLayout:
+                            size_hint: 1, 0.3
+                            Label: 
+                                text: "Color Map"
+                                color: 0,0,0,1
+                                font_size: 20
+                                bold: True
+                        
+                        BoxLayout:
+                            id: show_color_map
+                            orientation: "horizontal"
+                            spacing: "5dp"
+                            padding_x: "10dp"
 
                 GridLayout:
                     id: board_grid
