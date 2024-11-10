@@ -2,12 +2,13 @@ from kivy. app import App
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty, DictProperty
+from kivy.properties import ObjectProperty, DictProperty, NumericProperty, StringProperty
 from kivy.uix.button import Button
 from kivy.core.window import Window
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from functools import partial
+from flip_solver_utility import get_constant_matrix, get_transformation_matrix, solve
 import numpy as np
 import os
 class NavWidget(BoxLayout):
@@ -16,6 +17,11 @@ class NavWidget(BoxLayout):
 class HomeScreen(Screen):
     pass
 
+def get_neighbour_dir(connect):
+    if connect == "4":
+        return ([0, 1, 0, -1, 0], [0, 0, 1, 0, -1])
+    elif connect == "8":
+        return ([0, 1, 0, -1, 0, -1, -1, 1, 1], [0, 0, 1, 0, -1, -1, 1, -1, 1]) 
 class ColoredButton(Button):
     def __init__(self, value, pos_x, pos_y, m, n, N, color_map, position, connect, **kwargs):
         super().__init__(**kwargs)
@@ -26,12 +32,7 @@ class ColoredButton(Button):
         self.pos_y = pos_y
         self.neighbours = []
 
-        if connect == "4":
-            dirx = [0, 1, 0, -1, 0]
-            diry = [0, 0, 1, 0, -1]
-        elif connect == "8":
-            dirx = [0, 1, 0, -1, 0, -1, -1, 1, 1]
-            diry = [0, 0, 1, 0, -1, -1, 1, -1, 1]
+        dirx, diry = get_neighbour_dir(connect)
             
         for i in range(len(dirx)):
             nx = self.pos_x + dirx[i]
@@ -106,8 +107,6 @@ class ColoredButton(Button):
                 neighbor_button = board_grid.children[index]
                 if isinstance(neighbor_button, ColoredButton):
                     neighbor_button.update_value(N, color_map)
-
-
     
     #no need for specific event handler update image will do both
     # def on_size(self, *args):
@@ -119,7 +118,11 @@ class ColoredButton(Button):
     #     Clock.schedule_once(lambda dt: self._update_image(), 0)
 
 class GameScreen(Screen):
-    board = ObjectProperty(None)
+    N = NumericProperty()
+    m = NumericProperty()
+    n = NumericProperty()
+    connect = StringProperty()
+    win_condition = NumericProperty()
     color_map = DictProperty({
         0: (0.1725, 0.6275, 0.9725, 1),  # Bright sky blue
         1: (1.0000, 0.8431, 0.0000, 1),  # Vibrant yellow
@@ -134,12 +137,13 @@ class GameScreen(Screen):
         if not m or not n:  # Check if dimensions are provided
             return
         try:
-            N = int(N)
-            m, n = int(m), int(n)
-            win_condition = int(win_condition)
-            board = np.random.randint(N, size=(m*n, 1), dtype=np.int8)
+            self.N = int(N)
+            self.m, self.n = int(m), int(n)
+            self.win_condition = int(win_condition)
+            self.connect = connect
+            board = np.random.randint(self.N, size=(self.m*self.n, 1), dtype=np.int8)
             # Convert board to displayable format
-            self.display_board(board.reshape(m, n), m, n, N, connect, win_condition)
+            self.display_board(board.reshape(self.m, self.n), self.m, self.n, self.N, self.connect, self.win_condition)
         except ValueError:
             print("Please enter valid numbers for N and dimensions of the board.")
     
@@ -220,6 +224,32 @@ class GameScreen(Screen):
     def update_win_condition_values(self, N):
         values = [str(i) for i in range(N)]
         self.ids.win_condition.values = values
+    
+    def solve_board(self):
+        # Get the current board from the gridlayout
+        board_grid = self.ids.board_grid
+        ini_board = np.zeros(shape=(self.m*self.n, 1), dtype=np.int8)
+        final_board = np.array([self.win_condition for _ in range(self.m*self.n)]).reshape(-1,1)
+        dirx, diry = get_neighbour_dir(self.connect)
+
+        for cell in board_grid.children:
+            if isinstance(cell, ColoredButton):
+                pos = (cell.pos_x*self.n)+cell.pos_y
+                ini_board[pos] = cell.value
+
+        a = get_transformation_matrix(self.m, self.n, dirx, diry)
+        b = get_constant_matrix(final_board, ini_board, self.N)
+
+        solution = solve(a, b, self.m, self.n, self.N)
+        if solution is not None:
+            for i in range(self.m*self.n):
+                if solution[i][0]>0:
+                    row,col = divmod(i, self.n)
+                    print(f"Press {i}th cell at coordinate ({row}, {col}) {solution[i][0]} times.")
+        else:
+            print("Board not solvalbe")
+
+        
 class InfoScreen(Screen):
     pass
 

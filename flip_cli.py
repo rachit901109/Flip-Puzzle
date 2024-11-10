@@ -84,7 +84,7 @@ Hence we get, A*X = (final - initial) ===>  A*X = b
 
 # get transformation matrix according to connectivity rule. This matrix will alway be of size (m*n, m*n) as it captures 
 # cell to cell interactions and will alway be symmetric, becuase if x flips y then y flips x.
-def get_transformation_matrix(m,n):
+def get_transformation_matrix(m,n, dirx, diry):
     a = np.zeros((m*n, m*n), dtype=np.uint8) 
 
     for i in range(0, m*n):
@@ -102,7 +102,7 @@ def get_constant_matrix(final_state, initial_state, N):
     return (final_state-initial_state)%N
 
 
-a = get_transformation_matrix(m,n)
+a = get_transformation_matrix(m,n, dirx, diry)
 b = get_constant_matrix(final_state, initial_state, N)
 print("Transformation and constant matrix:-")
 print(a, a.shape)
@@ -224,8 +224,8 @@ def solve(a,b,m,n,N):
     if solution is not None:
         print("Solution:")
         print(solution)
-        print(f"showing solution path:-")
-        show_solution(initial_state, solution, m,n,N)
+        #print(f"showing solution path:-")
+        #show_solution(initial_state, solution, m,n,N)
     else:
         print("Puzzle not solvable.")
 

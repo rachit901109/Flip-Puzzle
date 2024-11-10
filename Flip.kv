@@ -119,6 +119,12 @@ WindowManager:
                         height: "50dp"
                         on_release: 
                             root.generate_board(mod_system.text, rows_input.text, cols_input.text, connectivity.text, win_condition.text)
+                    
+                    Button:
+                        text: "Solve"
+                        size_hint_y: None
+                        height: "50dp"
+                        on_release: root.solve_board()
                         
             # Right side for game board
             BoxLayout:
