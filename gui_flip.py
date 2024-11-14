@@ -1,12 +1,15 @@
 from kivy. app import App
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty, DictProperty, NumericProperty, StringProperty
+from kivy.properties import DictProperty, NumericProperty, StringProperty
 from kivy.uix.button import Button
-from kivy.core.window import Window
 from kivy.uix.image import Image
 from kivy.clock import Clock
+from kivy.graphics import Color, Line
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from functools import partial
 from flip_solver_utility import get_constant_matrix, get_transformation_matrix, solve
 import numpy as np
@@ -14,23 +17,26 @@ import os
 class NavWidget(BoxLayout):
     pass
 
+
 class HomeScreen(Screen):
     pass
+
 
 def get_neighbour_dir(connect):
     if connect == "4":
         return ([0, 1, 0, -1, 0], [0, 0, 1, 0, -1])
     elif connect == "8":
         return ([0, 1, 0, -1, 0, -1, -1, 1, 1], [0, 0, 1, 0, -1, -1, 1, -1, 1]) 
+
 class ColoredButton(Button):
     def __init__(self, value, pos_x, pos_y, m, n, N, color_map, position, connect, **kwargs):
         super().__init__(**kwargs)
-        
-        # Store initial values
+        # solution clicks are modified after user clicks solve button
         self.value = value
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.neighbours = []
+        self.sol_clicks = 0
 
         dirx, diry = get_neighbour_dir(connect)
             
@@ -44,6 +50,12 @@ class ColoredButton(Button):
         self.background_color = color_map[value]
         self.background_normal = ""
         
+        # Create a separate canvas instruction group for the border
+        with self.canvas.after:
+            self.border_color = Color(0, 0, 0, 1)
+            self.border_line = Line(rectangle=(0, 0, 0, 0), width=2)
+            self.border_color.a = 0  # Start with transparent border
+
         # Adjust text color based on background brightness
         # brightness = sum(color_map[value][:3]) / 3
         # self.color = (0, 0, 0, 1) if brightness > 0.5 else (1, 1, 1, 1)
@@ -86,6 +98,9 @@ class ColoredButton(Button):
                 self.x + (self.width - self.image.width) / 2,  # Center horizontally
                 self.y + (self.height - self.image.height) / 2  # Center vertically
             )
+
+            if hasattr(self, 'border_line'):
+                self.border_line.rectangle = (self.x, self.y, self.width, self.height)
     
     def update_value(self, N, color_map):
         """Update the button's value and color"""
@@ -96,6 +111,8 @@ class ColoredButton(Button):
         """Handle the button press"""
         # Get reference to the game board grid
         board_grid = self.parent
+
+        self.update_solution_click(N)
         
         # Update neighbors
         for cell in self.neighbours:
@@ -107,6 +124,7 @@ class ColoredButton(Button):
                 neighbor_button = board_grid.children[index]
                 if isinstance(neighbor_button, ColoredButton):
                     neighbor_button.update_value(N, color_map)
+                    # neighbor_button.update_solution_click(N)
     
     #no need for specific event handler update image will do both
     # def on_size(self, *args):
@@ -116,6 +134,17 @@ class ColoredButton(Button):
     # def on_pos(self, *args):
     #     """Handle position changes"""
     #     Clock.schedule_once(lambda dt: self._update_image(), 0)
+    def update_solution_click(self, N):
+        self.sol_clicks = max(self.sol_clicks-1, 0)%N
+        self.update_border()
+
+    def update_border(self):
+        """Update border visibility based on sol_clicks"""
+        if self.sol_clicks > 0:
+            self.border_color.a = 1  # Make border visible
+        else:
+            self.border_color.a = 0  # Make border transparent
+
 
 class GameScreen(Screen):
     N = NumericProperty()
@@ -220,6 +249,24 @@ class GameScreen(Screen):
             color_map_box.add_widget(btn)
         
         Clock.schedule_once(update_buttons, 0)
+    
+    def show_unsolvable_popup(self, text):
+        """Show popup when board is not solvable"""
+
+        content = BoxLayout(orientation='vertical', padding=10)
+
+        info_label = Label(text=text, size_hint=(1, None), halign="center", valign="center", markup=True)
+        info_label.bind(width=lambda *x: info_label.setter('text_size')(info_label, (info_label.width, None)), 
+                        texture_size=lambda *x: info_label.setter('height')(info_label, info_label.texture_size[1]))
+        content.add_widget(Widget(size_hint_y=0.5))
+        content.add_widget(info_label)
+        content.add_widget(Widget(size_hint_y=0.5))
+        popup = Popup(
+            title='Board Not Solvable',
+            content = content,
+            size_hint=(0.6, 0.4)
+        )
+        popup.open()
 
     def update_win_condition_values(self, N):
         values = [str(i) for i in range(N)]
@@ -241,13 +288,21 @@ class GameScreen(Screen):
         b = get_constant_matrix(final_board, ini_board, self.N)
 
         solution = solve(a, b, self.m, self.n, self.N)
-        if solution is not None:
+
+        if isinstance(solution, tuple):
+            text = f"Board is not solvable under current game settings.\nFor an {self.m} x {self.n} board with {self.N} colors and {self.connect} connectivity\nonly 1/{self.N**solution[1]} of all possible states are solvable."
+            self.show_unsolvable_popup(text)
+        else:
             for i in range(self.m*self.n):
                 if solution[i][0]>0:
                     row,col = divmod(i, self.n)
                     print(f"Press {i}th cell at coordinate ({row}, {col}) {solution[i][0]} times.")
-        else:
-            print("Board not solvalbe")
+
+            for idx, child in enumerate(board_grid.children):
+                if isinstance(child, ColoredButton):
+                    index = (self.m*self.n)-idx-1
+                    child.sol_clicks = solution[index][0]
+                    child.update_border()
 
         
 class InfoScreen(Screen):

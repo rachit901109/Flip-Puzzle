@@ -84,7 +84,7 @@ def solve(a, b, m,n,N):
             print(f"The required configuration (final - initial), {b.flatten()}, is not perpendicular to vectors in basis of null space of trasnformation matrix, \
                   which suggests that required configuration is not under the column space of the transformation matrix. \
                   \nMeaning it is not solvable under given game settings.")
-            return None
+            return None, len(basis_nullspace)
     
     # if solvalbe return solution vector 
     return b_inv
